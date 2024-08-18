@@ -34,7 +34,7 @@ void core3_main(void) {
 
     spi_init();
     init_network();
-    arp_test();
+    // arp_test();
 
     while(1);
 }

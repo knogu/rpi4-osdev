@@ -1,5 +1,6 @@
 #include "../include/fb.h"
 #include "../include/spi.h"
+#include "../include/io.h"
 #include "../net/enc28j60.h"
 #include "../tcpip/ip_arp_udp_tcp.h"
 
@@ -68,31 +69,31 @@ void init_network(void)
    handle.Init.ChecksumMode = ETH_CHECKSUM_BY_HARDWARE;
    handle.Init.InterruptEnableBits = EIE_LINKIE | EIE_PKTIE;
 
-   debugstr("Starting network up.");
+   uart_writeText("Starting network up.");
    debugcrlf();
    if (!ENC_Start(&handle)) {
-      debugstr("Could not initialise network card.");
+      uart_writeText("Could not initialise network card.");
    } else {
-      debugstr("Setting MAC address to C0:FF:EE:C0:FF:EE.");
+      uart_writeText("Setting MAC address to C0:FF:EE:C0:FF:EE.");
       debugcrlf();
 
       ENC_SetMacAddr(&handle);
 
-      debugstr("Network card successfully initialised.");
+      uart_writeText("Network card successfully initialised.");
    }
    debugcrlf();
 
-   debugstr("Waiting for ifup... ");
+   uart_writeText("Waiting for ifup... ");
    while (!(handle.LinkStatus & PHSTAT2_LSTAT)) ENC_IRQHandler(&handle);
-   debugstr("done.");
+   uart_writeText("done.");
    debugcrlf();
 
    // Re-enable global interrupts
    ENC_EnableInterrupts(EIE_INTIE);
 
-   debugstr("Initialising the TCP stack... ");
+   uart_writeText("Initialising the TCP stack... ");
    init_udp_or_www_server(myMAC, deviceIP);
-   debugstr("done.");
+   uart_writeText("done.");
    debugcrlf();
 }
 
@@ -114,19 +115,19 @@ void serve(void)
       uint16_t dat_p = packetloop_arp_icmp_tcp(buf, len);
 
       if (dat_p != 0) {
-         debugstr("Incoming web request... ");
+         uart_writeText("Incoming web request... ");
 
          if (strncmp("GET ", (char *)&(buf[dat_p]), 4) != 0) {
-            debugstr("not GET");
+            uart_writeText("not GET");
             dat_p = fill_tcp_data(buf, 0, "HTTP/1.0 401 Unauthorized\r\nContent-Type: text/html\r\n\r\n<h1>ERROR</h1>");
          } else {
             if (strncmp("/ ", (char *)&(buf[dat_p+4]), 2) == 0) {
                // just one web page in the "root directory" of the web server
-               debugstr("GET root");
+               uart_writeText("GET root");
                dat_p = fill_tcp_data(buf, 0, "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n<h1>Hello world!</h1>");
             } else {
                // just one web page not in the "root directory" of the web server
-               debugstr("GET not root");
+               uart_writeText("GET not root");
                dat_p = fill_tcp_data(buf, 0, "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n<h1>Goodbye cruel world.</h1>");
             }
          }
@@ -141,9 +142,12 @@ void serve(void)
 
 void main(void)
 {
-    fb_init();
+   //  fb_init();
 
     // Init network and serve web pages
+
+   uart_init();
+   uart_writeText("Hello world!\n");
 
     spi_init();
     init_network();

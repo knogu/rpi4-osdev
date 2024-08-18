@@ -53,7 +53,7 @@ uint8_t routerMAC[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 uint8_t deviceIP[4] = { 192, 168, 0, 66 };
 
 // IP Address of the router, whose hardware address we will find using the ARP request
-
+// note: ルーターじゃなくてpcとかraspbianでやりたければ、それらで固定ipセットしてここに指定すれば良さそう
 uint8_t routerIP[4] = { 192, 168, 0, 1 };
 
 // HELPER FUNCTIONS
